@@ -1,5 +1,6 @@
 package com.zirom.zephyr.services.implementations;
 
+import com.zirom.zephyr.domain.MetricType;
 import com.zirom.zephyr.domain.entities.ForecastMetrics;
 import com.zirom.zephyr.repositories.ForecastRepository;
 import com.zirom.zephyr.services.ForecastService;
@@ -15,7 +16,9 @@ public class ForecastServiceImpl implements ForecastService {
     private final ForecastRepository forecastRepository;
 
     @Override
-    public List<ForecastMetrics> getAllByCoordinates(double latitude, double longitude) {
-        return forecastRepository.getAllByPoint_LatitudeAndPoint_Longitude(latitude, longitude);
+    public List<ForecastMetrics> getAllByCoordinates(double latMin, double lngMin, double latMax, double lngMax, MetricType metricType) {
+        if (metricType == null)
+            return forecastRepository.getAllByPoint_LatitudeBetweenAndPoint_LongitudeBetween(latMax, latMin, lngMax, lngMin);
+        return forecastRepository.getAllByPoint_LatitudeBetweenAndPoint_LongitudeBetweenAndMetricType(latMax, latMin, lngMax, lngMin, metricType);
     }
 }
