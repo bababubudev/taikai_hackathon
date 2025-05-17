@@ -39,7 +39,9 @@ function Header() {
             <li><Link href={"/"} className="text-xl font-thin">contact</Link></li>
           </ul>
         </div>
-        <div className="flex flex-row p-2 bg-transparent rounded-full lg:border-2 border-base-300 shadow-md">
+        <div className={`flex flex-row p-2 bg-transparent  border-base-100 shadow-md
+           ${isScrolled ? "border-none" : "backdrop-blur-md rounded-full lg:border-2"}`
+        }>
           <Link href={"#"} className="btn btn-primary text-xl">Hackathon</Link>
           <div className="hidden lg:flex">
             <div className="divider divider-horizontal m-0 ml-4"></div>
