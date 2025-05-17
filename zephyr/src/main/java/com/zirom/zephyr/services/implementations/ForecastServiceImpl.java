@@ -18,7 +18,7 @@ public class ForecastServiceImpl implements ForecastService {
     @Override
     public List<ForecastMetrics> getAllByCoordinates(double latMin, double lngMin, double latMax, double lngMax, MetricType metricType) {
         if (metricType == null)
-            return forecastRepository.getAllByPoint_LatitudeBetweenAndPoint_LongitudeBetween(latMax, latMin, lngMax, lngMin);
-        return forecastRepository.getAllByPoint_LatitudeBetweenAndPoint_LongitudeBetweenAndMetricType(latMax, latMin, lngMax, lngMin, metricType);
+            return forecastRepository.getAllByPoint_LatitudeBetweenAndPoint_LongitudeBetween(latMin, latMax, lngMin, lngMax);
+        return forecastRepository.getAllByPoint_LatitudeBetweenAndPoint_LongitudeBetweenAndMetricType(latMin, latMax, lngMin, lngMax, metricType);
     }
 }
