@@ -30,9 +30,10 @@ public class ForecastController {
             @RequestParam double lngMin,
             @RequestParam double latMax,
             @RequestParam double lngMax,
+            @RequestParam Integer forecastHour,
             @RequestParam(required = false) MetricType metricType
     ) {
-        List<ForecastMetrics> forecastData = forecastService.getAllByCoordinates(latMin, lngMin, latMax, lngMax, metricType);
+        List<ForecastMetrics> forecastData = forecastService.getAllByCoordinates(latMin, lngMin, latMax, lngMax, forecastHour, metricType);
         List<ForecastResponse> forecastDataDto = forecastData.stream().map(forecastMapper::toDto).toList();
         return ResponseEntity.ok(forecastDataDto);
     }
