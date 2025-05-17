@@ -3,3 +3,9 @@ export enum SeverityStatus {
   MEDIUM,
   HIGH,
 }
+
+export enum AirIndexStatus {
+  GOOD,
+  BAD,
+  TERRIBLE,
+}

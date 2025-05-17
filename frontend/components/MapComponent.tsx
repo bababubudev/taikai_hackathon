@@ -10,21 +10,11 @@ import { SeverityStatus } from "@/lib/types";
 interface MapComponentProp {
   position: LatLngExpression;
   value: number;
+  statusMessage: string;
   status: SeverityStatus;
 }
 
-const MapComponent = ({ position, value, status }: MapComponentProp) => {
-  const getPopupMessage = () => {
-    switch (status) {
-      case SeverityStatus.HIGH:
-        return "High UV alert! Apply sunscreen.";
-      case SeverityStatus.MEDIUM:
-        return "Moderate UV in your area. Sunscreen reccomnended";
-      case SeverityStatus.LOW:
-        return "Low UV in your area"
-    }
-  }
-
+const MapComponent = ({ position, value, status, statusMessage }: MapComponentProp) => {
   // Fix Leaflet icon issues in Next.js
   useEffect(() => {
     // Fix the missing icon issue
@@ -41,11 +31,11 @@ const MapComponent = ({ position, value, status }: MapComponentProp) => {
     <MapContainer
       center={position}
       zoom={13}
-      className="h-96 w-full rounded-lg shadow-lg"
+      className="min-h-96 w-full rounded-lg shadow-md"
     >
       <TileLayer
-        attribution='Tiles &copy; Esri &mdash; National Geographic, DeLorme, NAVTEQ'
-        url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}"
+        attribution=''
+        url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
       />
 
       {/* User location marker */}
@@ -53,7 +43,7 @@ const MapComponent = ({ position, value, status }: MapComponentProp) => {
         <Popup>
           Your location <br />
           Current UV Index: {value} <br />
-          {getPopupMessage()}
+          {statusMessage}
         </Popup>
       </Marker>
 
