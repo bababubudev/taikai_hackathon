@@ -16,9 +16,10 @@ public class ForecastServiceImpl implements ForecastService {
     private final ForecastRepository forecastRepository;
 
     @Override
-    public List<ForecastMetrics> getAllByCoordinates(double latMin, double lngMin, double latMax, double lngMax, Integer forecastHour, MetricType metricType) {
+    public List<ForecastMetrics> getAllByCoordinates(double lat, double lng, Integer forecastHour, MetricType metricType) {
         if (metricType == null)
-            return forecastRepository.getAllByPoint_LatitudeBetweenAndPoint_LongitudeBetweenAndPoint_ForecastHour(latMin, latMax, lngMin, lngMax, forecastHour);
-        return forecastRepository.getAllByPoint_LatitudeBetweenAndPoint_LongitudeBetweenAndPoint_ForecastHourAndMetricType(latMin, latMax, lngMin, lngMax, forecastHour, metricType);
+            return forecastRepository.findAllMetricsForNearestPoint(lat, lng, forecastHour);
+        System.out.println(metricType);
+        return forecastRepository.findOneMetricForNearestPoint(lat, lng, forecastHour, metricType.name());
     }
 }
