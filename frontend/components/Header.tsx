@@ -2,8 +2,12 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 function Header() {
+  const pathname = usePathname();
+  const isHomePage = pathname === "/";
+
   const [isScrolled, setIsScrolled] = useState(false);
 
   useEffect(() => {
@@ -25,24 +29,28 @@ function Header() {
     <header className={`navbar fixed top-0 z-50 transition-all duration-150 bg-base-transparent lg:px-16
         ${isScrolled ? "bg-base-100 shadow-md py-2" : "bg-transparent"}`
     }>
-
-      <div className="navbar-start items-center">
+      <div className={`lg:navbar-start ${isHomePage ? "navbar-start" : "navbar-end ml-16"}`}>
         <div className="dropdown">
-          <div tabIndex={0} role="button" className="btn btn-ghost lg:hidden">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"> <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h8m-8 6h16" /> </svg>
-          </div>
-          <ul
-            tabIndex={0}
-            className="menu menu-sm dropdown-content items-stretch bg-base-100 rounded-box z-1 mt-3 max-w-fit p-2 shadow"
-          >
-            <li><Link href={"/"} className="text-xl font-thin">about</Link></li>
-            <li><Link href={"/"} className="text-xl font-thin">contact</Link></li>
-          </ul>
+          {isHomePage && (
+            <>
+              <div tabIndex={0} role="button" className="btn btn-ghost lg:hidden">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"> <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h8m-8 6h16" /> </svg>
+              </div>
+              <ul
+                tabIndex={0}
+                className="menu menu-sm dropdown-content items-stretch bg-base-100 rounded-box z-1 mt-3 max-w-fit p-2 shadow"
+              >
+                <li><Link href={"/"} className="text-xl font-thin">about</Link></li>
+                <li><Link href={"/"} className="text-xl font-thin">contact</Link></li>
+              </ul>
+            </>
+          )}
+
         </div>
         <div className={`flex flex-row p-2 bg-transparent  border-base-100 shadow-md
-           ${isScrolled ? "border-none" : "backdrop-blur-md rounded-full lg:border-2"}`
+          ${isScrolled ? "border-none" : "backdrop-blur-md rounded-full lg:border-2"}`
         }>
-          <Link href={"#"} className="btn btn-primary text-xl">Hackathon</Link>
+          <Link href={"/"} className="btn btn-primary text-xl">Zephyr</Link>
           <div className="hidden lg:flex">
             <div className="divider divider-horizontal m-0 ml-4"></div>
             <Link href={"#"} className="btn btn-ghost font-thin text-xl">about</Link>
