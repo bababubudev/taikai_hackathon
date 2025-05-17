@@ -1,30 +1,67 @@
-import { LatLngExpression } from "leaflet";
+"use client";
+
 import MapComponent from "../MapComponent";
 import GeneralCard from "./ui/GeneralCard";
-import { MdWindPower } from "react-icons/md";
-import { useState } from "react";
-import { SeverityStatus } from "@/lib/types";
+import { useEffect, useState } from "react";
+import { MetricTypes, SeverityStatus, ZephyrData } from "@/lib/types";
+import { DataBySeverity, fetchWeatherData, processWeatherDataBySeverity } from "@/services/data";
 
 interface MapViewProps {
   isLoading: boolean;
-  userLocation: LatLngExpression | null;
+  userLocation: { lat: number, lng: number } | null;
 }
 
 function MapView({ isLoading, userLocation = null }: MapViewProps) {
-  const [currentDetail, setCurrentDetail] = useState("uv");
+  const [currentDetail, setCurrentDetail] = useState<MetricTypes>(MetricTypes.UV);
+  const [forecastHour, setForecastHour] = useState(1);
+  const [weatherData, setWeatherData] = useState<DataBySeverity | null>(null);
+  const [loadingData, setLoadingData] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const getCurrentStatus = (): { value: number, status: SeverityStatus } => {
-    switch (currentDetail) {
-      case "uv":
-        return { value: 0.01, status: 2 };
-      case "aqi":
-        return { value: 0.11, status: 1 };
-      case "fp":
-        return { value: 0.9, status: 2 };
-      default:
-        return { value: 0, status: 0 };
+  useEffect(() => {
+    async function loadData() {
+      if (!userLocation) return;
+      setLoadingData(true);
+      try {
+        const data = await fetchWeatherData({
+          lat: userLocation.lat,
+          lng: userLocation.lng,
+          forecastHour,
+          metricType: currentDetail,
+        });
+        setWeatherData(processWeatherDataBySeverity(data));
+        setError(null);
+      } catch (err) {
+        console.error("Failed to fetch weather data", err);
+        setError("Failed to fetch weather data");
+      } finally {
+        setLoadingData(false);
+      }
     }
-  }
+
+    loadData();
+  }, [currentDetail, forecastHour, userLocation]);
+
+  const getCurrentStatus = (): { value: number; status: SeverityStatus } => {
+    if (!weatherData) return { value: 0, status: SeverityStatus.LOW };
+
+    const findInSeverity = (
+      severityData: ZephyrData[],
+      severityStatus: SeverityStatus
+    ) => {
+      const match = severityData.find((item) => item.metricType === currentDetail);
+      return match ? { value: match.value, status: severityStatus } : null;
+    };
+
+    return (
+      findInSeverity(weatherData.high, SeverityStatus.HIGH) ||
+      findInSeverity(weatherData.medium, SeverityStatus.MEDIUM) ||
+      findInSeverity(weatherData.low, SeverityStatus.LOW) || {
+        value: 0,
+        status: SeverityStatus.LOW,
+      }
+    );
+  };
 
   const currentStatus = getCurrentStatus().status;
 
@@ -33,11 +70,11 @@ function MapView({ isLoading, userLocation = null }: MapViewProps) {
       case SeverityStatus.HIGH:
         return "High UV alert! Apply sunscreen.";
       case SeverityStatus.MEDIUM:
-        return "Moderate UV in your area. Sunscreen reccomnended";
+        return "Moderate UV in your area. Sunscreen recommended";
       case SeverityStatus.LOW:
-        return "Low UV in your area"
+        return "Low UV in your area";
     }
-  }
+  };
 
   const getCurrentAlertType = () => {
     switch (currentStatus) {
@@ -50,10 +87,34 @@ function MapView({ isLoading, userLocation = null }: MapViewProps) {
       default:
         return "alert-info";
     }
-  }
+  };
+
+  const handleHourChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setForecastHour(Number(e.target.value));
+  };
 
   return (
     <div className="relative min-h-[320px]">
+      <div className="flex justify-between mb-4">
+        <div className="flex gap-2 items-center">
+          {loadingData &&
+            <>
+              <span className="loading loading-spinner loading-xl text-primary"></span>
+              <p className="text-lg animate-pulse italic">Gathering data...</p>
+            </>
+          }
+        </div>
+        <select
+          defaultValue="Pick a forecast hour"
+          onChange={handleHourChange}
+          className="select"
+        >
+          <option disabled={true}>Pick a forecast hour</option>
+          {[1, 2, 3, 4, 5, 6].map(hour => (
+            <option key={hour} value={hour}>Hour {hour}</option>
+          ))}
+        </select>
+      </div>
       {!isLoading ? (
         <div className="grid lg:grid-cols-[2fr_1fr] grid-cols-1 gap-4">
           <MapComponent
@@ -62,41 +123,43 @@ function MapView({ isLoading, userLocation = null }: MapViewProps) {
             status={getCurrentStatus().status}
             statusMessage={getPopupMessage()}
           />
+
           <div className="grid gap-4 shadow-md">
-            <div className="collapse collapse-plus bg-base-100 border border-base-300">
-              <input type="radio" name="my-accordion-3" defaultChecked onChange={() => setCurrentDetail("uv")} />
+            <div className="collapse collapse-plus bg-base-300 min-w-xs border border-base-300">
+              <input type="radio" name="accordion" defaultChecked onChange={() => setCurrentDetail(MetricTypes.UV)} />
               <div className="collapse-title font-semibold">UV Index Summary</div>
               <div className="collapse-content space-y-4">
                 <GeneralCard
                   description="Current UV Level"
-                  measurement="0.69"
+                  measurement={getCurrentStatus().value.toFixed(2)}
                   unit={<>mW/cm<sup>2</sup></>}
                 />
-                <div role="alert" className={`alert ${getCurrentAlertType} alert-soft`}>
+                <div role="alert" className={`alert ${getCurrentAlertType()} alert-soft`}>
                   <span>{getPopupMessage()}</span>
                 </div>
               </div>
             </div>
-            <div className="collapse collapse-plus bg-base-100 border border-base-300">
-              <input type="radio" name="my-accordion-3" onChange={() => setCurrentDetail("aqi")} />
-              <div className="collapse-title font-semibold">Air quality index</div>
+
+            <div className="collapse collapse-plus bg-base-300 border border-base-300">
+              <input type="radio" name="accordion" onChange={() => setCurrentDetail(MetricTypes.SURFACE_PRESSURE)} />
+              <div className="collapse-title font-semibold">Surface Pressure</div>
               <div className="collapse-content text-sm">
                 <GeneralCard
-                  description="Air Quality Index"
-                  measurement="69"
-                  unit={<></>}
-                  icon={MdWindPower}
+                  description="Surface Pressure"
+                  measurement={getCurrentStatus().value.toFixed(2)}
+                  unit={"hPa"}
                   color="bg-blue-600/30"
                 />
               </div>
             </div>
-            <div className="collapse collapse-plus bg-base-100 border border-base-300">
-              <input type="radio" name="my-accordion-3" onChange={() => setCurrentDetail("fp")} />
-              <div className="collapse-title font-semibold">Particulates</div>
+
+            <div className="collapse collapse-plus bg-base-300 border border-base-300">
+              <input type="radio" name="accordion" onChange={() => setCurrentDetail(MetricTypes.PM25)} />
+              <div className="collapse-title font-semibold">Particulate Matters</div>
               <div className="collapse-content text-sm">
                 <GeneralCard
                   description="Fine Particles (≤ 2.5 µm)"
-                  measurement="4.4"
+                  measurement={getCurrentStatus().value.toFixed(2)}
                   unit={<>µg/m<sup>3</sup></>}
                 />
               </div>
@@ -109,7 +172,7 @@ function MapView({ isLoading, userLocation = null }: MapViewProps) {
         </div>
       )}
     </div>
-  )
+  );
 }
 
 export default MapView;

@@ -22,7 +22,7 @@ function GeneralCard({ description, measurement, unit, icon, color = "bg-primary
               <h3 className="text-6xl font-bold">{measurement}</h3>
               <p className="text-2xl text-light opacity-60"><sup>{unit}</sup></p>
             </div>
-            <p className="font-light">{description}</p>
+            <p className="text-2xl font-light">{description}</p>
           </div>
           {Icon && (
             <div className={`${color} p-4 rounded-full text-6xl`}>

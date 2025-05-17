@@ -10,14 +10,26 @@ import { SeverityStatus } from "@/lib/types";
 interface MapComponentProp {
   position: LatLngExpression;
   value: number;
-  statusMessage: string;
   status: SeverityStatus;
+  statusMessage?: string;
 }
 
 const MapComponent = ({ position, value, status, statusMessage }: MapComponentProp) => {
+  const getSeverityColor = () => {
+    switch (status) {
+      case SeverityStatus.HIGH:
+        return "#ff6368";
+      case SeverityStatus.MEDIUM:
+        return "#ffbf00";
+      case SeverityStatus.LOW:
+        return "#00b5fb";
+    }
+  }
+
   // Fix Leaflet icon issues in Next.js
   useEffect(() => {
     // Fix the missing icon issue
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     delete (L.Icon.Default.prototype as any)._getIconUrl;
 
     L.Icon.Default.mergeOptions({
@@ -30,7 +42,7 @@ const MapComponent = ({ position, value, status, statusMessage }: MapComponentPr
   return (
     <MapContainer
       center={position}
-      zoom={13}
+      zoom={11}
       className="min-h-96 w-full rounded-lg shadow-md"
     >
       <TileLayer
@@ -41,7 +53,7 @@ const MapComponent = ({ position, value, status, statusMessage }: MapComponentPr
       {/* User location marker */}
       <Marker position={position}>
         <Popup>
-          Your location <br />
+          <div className="text-2xl">Current location</div><br />
           Current UV Index: {value} <br />
           {statusMessage}
         </Popup>
@@ -51,11 +63,11 @@ const MapComponent = ({ position, value, status, statusMessage }: MapComponentPr
       <Circle
         center={position}
         pathOptions={{
-          fillColor: status === SeverityStatus.HIGH ? "#ff3333" : "#33ff33",
+          fillColor: getSeverityColor(),
           fillOpacity: 0.1,
-          color: status === SeverityStatus.HIGH ? "#cc0000" : "#00cc00"
+          color: getSeverityColor()
         }}
-        radius={1000}
+        radius={50_000}
       />
     </MapContainer>
   );
