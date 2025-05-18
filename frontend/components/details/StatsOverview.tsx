@@ -43,7 +43,8 @@ function StatsOverview({ userLocation }: StatsOverviewProps) {
     // 1 UVI ≈ 0.025 mW/cm² of UV radiation
     // Clamp result to 0 decimal places for standard UV Index scale
     if (isNaN(uv) || uv < 0) return 0;
-    return Math.round(uv / 0.025);
+    const newUv = uv * 4;
+    return Math.round(newUv / 0.025);
   };
 
   const getAirPollutionStatus = (aqi: number): { output: string, bg: string, col: string, img?: string } => {
