@@ -8,12 +8,8 @@ import { WeatherDataProvider } from "@/providers/WeatherDataContext";
 import { Location } from "@/lib/types";
 import PollenOverview from "@/components/details/PollenOverview";
 
-interface DetailPageProps {
-  currentTab?: string;
-}
-
-function DetailPage({ currentTab = "overview" }: DetailPageProps) {
-  const [activeTab, setActiveTab] = useState(currentTab);
+function DetailPage() {
+  const [activeTab, setActiveTab] = useState("overview");
   const [userLocation, setUserLocation] = useState<Location | null>(null);
   const [isLocating, setIsLocating] = useState(false);
 
