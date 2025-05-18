@@ -25,7 +25,7 @@ function GeneralCard({ description, measurement, unit, icon, color = "bg-primary
             <p className="text-sm font-light">{description}</p>
           </div>
           {Icon && (
-            <div className={`${color} p-2 rounded-full text-2xl shadow-md overflow-hidden`}>
+            <div className={`${color} p-2 rounded-full text-2xl glass overflow-hidden`}>
               <Icon />
             </div>
           )}

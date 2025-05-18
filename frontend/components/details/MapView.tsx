@@ -215,11 +215,12 @@ function MapView({ isLoading, userLocation = null }: MapViewProps) {
     <div className="relative min-h-[320px]">
       <div className="flex justify-between mb-4">
         <div className="flex gap-2 items-center">
-          {(loading) &&
+          {(loading) ?
             <>
               <span className="loading loading-spinner loading-xl text-primary"></span>
               <p className="text-sm md:text-lg animate-pulse italic">Gathering data...</p>
-            </>
+            </> :
+            <h3 className="text-2xl font-semibold">My Location</h3>
           }
           {error &&
             <div className="alert alert-error">
@@ -323,8 +324,8 @@ function MapView({ isLoading, userLocation = null }: MapViewProps) {
       )}
 
       <div className="mt-6 p-4 border border-base-300 bg-base-200 rounded-lg shadow-sm space-y-2">
-        <div className="flex justify-between gap-2 items-start">
-          <h3 className="text-lg font-semibold">Combined Health Impact Summary</h3>
+        <div className="flex justify-between gap-2 items-center">
+          <h3 className="text-lg font-semibold">Combined Health Impact</h3>
           <div className={`badge badge-soft min-w-24 ${combinedSummary.riskScore >= 4
             ? "badge-error"
             : combinedSummary.riskScore >= 2

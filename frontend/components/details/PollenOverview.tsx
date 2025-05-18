@@ -163,8 +163,7 @@ function PollenOverview({ className = "" }: PollenOverviewProps) {
             </div>
 
             <div className="flex flex-col items-center justify-center h-32">
-              <div className="text-6xl font-bold mb-2">{pollenIndex}</div>
-              <div className="text-sm opacity-80">Scale: 0-10</div>
+              <div className="text-6xl glass aspect-square rounded-full text-center font-bold p-2 mb-2">{pollenIndex}</div>
             </div>
 
             <div className="flex justify-center card-actions mt-2">

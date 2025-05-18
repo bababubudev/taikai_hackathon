@@ -30,7 +30,7 @@ function Header() {
     <header className={`navbar fixed top-0 z-50 transition-all duration-150 bg-base-transparent lg:px-16
         ${isScrolled ? "bg-base-100 shadow-md py-2" : "bg-transparent"}`
     }>
-      <div className={`lg:navbar-start ${isHomePage ? "navbar-start" : "navbar-end ml-16 lg:ml-0"}`}>
+      <div className={`navbar-start ${isHomePage ? "ml-0" : "ml-16 lg:ml-0"}`}>
         <div className="dropdown">
           {isHomePage && (
             <>
@@ -59,9 +59,9 @@ function Header() {
               alt="Zephyr"
               width={150}
               height={50}
-              className="object-contain w-8 h-auto"
+              className="object-contain w-8 h-auto rounded-full glass"
             />
-            <h3>Zephyr</h3>
+            <h3 className="font-extralight">Zephyr</h3>
           </Link>
           <div className="hidden lg:flex">
             <div className="divider divider-horizontal m-0 ml-4"></div>

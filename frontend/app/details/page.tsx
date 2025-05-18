@@ -43,10 +43,6 @@ function DetailPage({ currentTab = "overview" }: DetailPageProps) {
       case "overview":
         return (
           <StatsOverview
-            airIndex={40}
-            pollutant="Condom"
-            pollutantValue={69}
-            pollutantUnit={<>kg/m<sup>3</sup></>}
             userLocation={userLocation}
           />
         );
