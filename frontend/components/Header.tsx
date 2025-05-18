@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 
 function Header() {
@@ -29,16 +30,18 @@ function Header() {
     <header className={`navbar fixed top-0 z-50 transition-all duration-150 bg-base-transparent lg:px-16
         ${isScrolled ? "bg-base-100 shadow-md py-2" : "bg-transparent"}`
     }>
-      <div className={`lg:navbar-start ${isHomePage ? "navbar-start" : "navbar-end ml-16"}`}>
+      <div className={`navbar-start ${isHomePage ? "ml-0" : "ml-16 lg:ml-0"}`}>
         <div className="dropdown">
           {isHomePage && (
             <>
               <div tabIndex={0} role="button" className="btn btn-ghost lg:hidden">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"> <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h8m-8 6h16" /> </svg>
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h8m-8 6h16" />
+                </svg>
               </div>
               <ul
                 tabIndex={0}
-                className="menu menu-sm dropdown-content items-stretch bg-base-100 rounded-box z-1 mt-3 max-w-fit p-2 shadow"
+                className="menu menu-sm dropdown-content items-stretch rounded-box z-1 mt-3 p-2 shadow glass border-2 border-base-100"
               >
                 <li><Link href={"/details"} className="text-xl font-thin">details</Link></li>
                 <li><Link href={"/"} className="text-xl font-thin">contact</Link></li>
@@ -47,10 +50,19 @@ function Header() {
           )}
 
         </div>
-        <div className={`flex flex-row p-2 bg-transparent  border-base-100 shadow-md
-          ${isScrolled ? "border-none" : "backdrop-blur-md rounded-full lg:border-2"}`
+        <div className={`flex flex-row p-2 bg-base-transparent border-base-100 shadow-md
+          ${isScrolled ? "border-none" : "lg:glass rounded-full lg:border-2"}`
         }>
-          <Link href={"/"} className="btn btn-primary text-xl">Zephyr</Link>
+          <Link href={"/"} className="btn btn-primary text-xl">
+            <Image
+              src="/icons/darklogo.png"
+              alt="Zephyr"
+              width={150}
+              height={50}
+              className="object-contain w-8 h-auto rounded-full glass"
+            />
+            <h3 className="font-extralight">Zephyr</h3>
+          </Link>
           <div className="hidden lg:flex">
             <div className="divider divider-horizontal m-0 ml-4"></div>
             <Link href={"/details"} className="btn btn-ghost font-thin text-xl">details</Link>

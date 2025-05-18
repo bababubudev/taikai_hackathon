@@ -10,13 +10,13 @@ interface DashboardSidebarProps {
 export default function DashboardSidebar({ activeTab, onTabChange }: DashboardSidebarProps) {
 
   return (
-    <div className="pt-24 w-80 min-h-full bg-base-200 text-base-content">
+    <div className="pt-24 w-56 min-h-full bg-base-100 lg:bg-transparent text-base-content">
       <div className="flex flex-col h-full">
         <div>
-          <ul className="space-y-8">
+          <ul>
             <li>
               <button
-                className={`flex items-center p-2 w-full text-2xl font-light ${activeTab === "overview" ? "text-primary" : "hover:bg-base-300"}`}
+                className={`flex items-center p-4 w-full text-2xl font-light ${activeTab === "overview" ? "text-primary" : "hover:bg-base-300"}`}
                 onClick={() => onTabChange("overview")}
               >
                 Overview
@@ -24,26 +24,18 @@ export default function DashboardSidebar({ activeTab, onTabChange }: DashboardSi
             </li>
             <li>
               <button
-                className={`flex items-center p-2 w-full text-2xl font-light ${activeTab === "map" ? "text-primary" : "hover:bg-base-300"}`}
+                className={`flex items-center p-4 w-full text-2xl font-light ${activeTab === "map" ? "text-primary" : "hover:bg-base-300"}`}
                 onClick={() => onTabChange("map")}
               >
-                Map
+                My Location
               </button>
             </li>
             <li>
               <button
-                className={`flex items-center p-2 w-full text-2xl font-light ${activeTab === "hourly-forecast" ? "text-primary" : "hover:bg-base-300"}`}
-                onClick={() => onTabChange("hourly-forecast")}
+                className={`flex items-center p-4 w-full text-2xl font-light ${activeTab === "pollen-overview" ? "text-primary" : "hover:bg-base-300"}`}
+                onClick={() => onTabChange("pollen-overview")}
               >
-                Hourly Forecast
-              </button>
-            </li>
-            <li>
-              <button
-                className={`flex items-center p-2 w-full text-2xl font-light ${activeTab === "health-risks" ? "text-primary" : "hover:bg-base-300"}`}
-                onClick={() => onTabChange("health-risks")}
-              >
-                Health Risks
+                Pollen
               </button>
             </li>
           </ul>
