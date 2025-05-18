@@ -6,10 +6,10 @@ public enum MetricType {
     sp,
     tm,
     pm2p5,
-    co,
-    no,
-    no2,
-    o3,
-    pm10,
-    so2
+    co_conc,
+    no_conc,
+    no2_conc,
+    o3_conc,
+    pm10_conc,
+    so2_conc
 }
