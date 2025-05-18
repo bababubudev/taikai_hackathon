@@ -14,18 +14,18 @@ function GeneralCard({ description, measurement, unit, icon, color = "bg-primary
   const Icon = icon;
 
   return (
-    <div className="card bg-base-200 shadow-md">
-      <div className="card-body">
+    <div className={`card shadow-md ${color}`}>
+      <div className="card-body p-4">
         <div className="flex items-center justify-between">
           <div>
-            <div className="flex">
-              <h3 className="text-6xl font-bold">{measurement}</h3>
-              <p className="text-2xl text-light opacity-60"><sup>{unit}</sup></p>
+            <div className="flex gap-2">
+              <h3 className="text-lg font-bold">{measurement}</h3>
+              <p className="text-light opacity-60"><sup>{unit}</sup></p>
             </div>
-            <p className="text-2xl font-light">{description}</p>
+            <p className="text-sm font-light">{description}</p>
           </div>
           {Icon && (
-            <div className={`${color} p-4 rounded-full text-6xl`}>
+            <div className={`${color} p-2 rounded-full text-2xl shadow-md overflow-hidden`}>
               <Icon />
             </div>
           )}

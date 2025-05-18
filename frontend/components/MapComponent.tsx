@@ -9,12 +9,13 @@ import { SeverityStatus } from "@/lib/types";
 
 interface MapComponentProp {
   position: LatLngExpression;
+  currentDetail: string;
   value: number;
   status: SeverityStatus;
   statusMessage?: string;
 }
 
-const MapComponent = ({ position, value, status, statusMessage }: MapComponentProp) => {
+const MapComponent = ({ position, currentDetail, value, status, statusMessage }: MapComponentProp) => {
   const getSeverityColor = () => {
     switch (status) {
       case SeverityStatus.HIGH:
@@ -54,7 +55,7 @@ const MapComponent = ({ position, value, status, statusMessage }: MapComponentPr
       <Marker position={position}>
         <Popup>
           <div className="text-2xl">Current location</div><br />
-          Current UV Index: {value} <br />
+          {currentDetail}: {value} <br />
           {statusMessage}
         </Popup>
       </Marker>
