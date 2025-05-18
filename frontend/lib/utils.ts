@@ -106,23 +106,6 @@ export function calculateAQI(pollutants: Partial<Record<MetricTypes, ZephyrData 
     ],
   };
 
-  const POLLEN_BREAKPOINTS = [
-    { c_low: 0, c_high: 15, aqi_low: 0, aqi_high: 50 },
-    { c_low: 16, c_high: 90, aqi_low: 51, aqi_high: 100 },
-    { c_low: 91, c_high: 150, aqi_low: 101, aqi_high: 150 },
-    { c_low: 151, c_high: 300, aqi_low: 151, aqi_high: 200 },
-    { c_low: 301, c_high: 500, aqi_low: 201, aqi_high: 300 },
-  ];
-
-  const pollenTypes: MetricTypes[] = [
-    MetricTypes.ALDER_POLLEN,
-    MetricTypes.BIRCH_POLLEN,
-    MetricTypes.GRASS_POLLEN,
-    MetricTypes.MUGWORT_POLLEN,
-    MetricTypes.OLIVE_POLLEN,
-    MetricTypes.RAGWEED_POLLEN,
-  ];
-
   const unitScaling: Record<string, number> = {
     pm2p5: 1e9,        // fractional g/m³ -> µg/m³
     pm10_conc: 1,      // already in µg/m³
@@ -150,23 +133,6 @@ export function calculateAQI(pollutants: Partial<Record<MetricTypes, ZephyrData 
       const aqi = ((bp.aqi_high - bp.aqi_low) / (bp.c_high - bp.c_low)) * (value - bp.c_low) + bp.aqi_low;
       scores.push({
         type: type as MetricTypes,
-        aqi: Math.round(aqi),
-        value: +value.toFixed(2),
-      });
-    }
-  }
-
-  for (const pollenType of pollenTypes) {
-    const data = pollutants[pollenType];
-    if (!data) continue;
-
-    const value = data.value;
-    const bp = POLLEN_BREAKPOINTS.find(b => value >= b.c_low && value <= b.c_high);
-
-    if (bp) {
-      const aqi = ((bp.aqi_high - bp.aqi_low) / (bp.c_high - bp.c_low)) * (value - bp.c_low) + bp.aqi_low;
-      scores.push({
-        type: pollenType,
         aqi: Math.round(aqi),
         value: +value.toFixed(2),
       });
