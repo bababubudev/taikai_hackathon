@@ -59,7 +59,7 @@ function Header() {
               alt="Zephyr"
               width={150}
               height={50}
-              className="object-contain w-10 h-auto"
+              className="object-contain w-8 h-auto"
             />
             <h3>Zephyr</h3>
           </Link>

@@ -5,8 +5,17 @@ import { GiPollenDust, GiOakLeaf, GiFallingLeaf, GiGrass } from "react-icons/gi"
 import { TbPlant } from "react-icons/tb";
 import { FaLeaf, FaInfoCircle } from "react-icons/fa";
 import { MetricTypes } from "@/lib/types";
+import { IconType } from "react-icons";
 
-const POLLEN_ICON_MAP = {
+type PollenMetric =
+  | MetricTypes.ALDER_POLLEN
+  | MetricTypes.BIRCH_POLLEN
+  | MetricTypes.GRASS_POLLEN
+  | MetricTypes.MUGWORT_POLLEN
+  | MetricTypes.OLIVE_POLLEN
+  | MetricTypes.RAGWEED_POLLEN;
+
+const POLLEN_ICON_MAP: Record<PollenMetric, IconType> = {
   [MetricTypes.ALDER_POLLEN]: FaLeaf,
   [MetricTypes.BIRCH_POLLEN]: GiFallingLeaf,
   [MetricTypes.GRASS_POLLEN]: GiGrass,
@@ -80,7 +89,13 @@ function DetailedPollenView() {
           </div>
 
           <div className="flex flex-col items-center justify-center py-6">
-            <div className="glass radial-progress text-base-content" style={{ "--value": index * 10, "--size": "8rem", "--thickness": "0.8rem" } as any}>
+            <div className="glass radial-progress text-base-content" style={
+              {
+                "--value": index * 10,
+                "--size": "8rem",
+                "--thickness": "0.8rem"
+              } as React.CSSProperties & Record<"--value" | "--size" | "--thickness", string | number>
+            }>
               <span className="text-4xl font-bold">{index}</span>
             </div>
           </div>
@@ -103,7 +118,7 @@ function DetailedPollenView() {
         <h3 className="text-lg font-semibold mb-3">Pollen Breakdown</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
           {Object.entries(individualPollens).map(([key, pollen]) => {
-            const Icon = POLLEN_ICON_MAP[key as MetricTypes] || GiPollenDust;
+            const Icon = POLLEN_ICON_MAP[key as PollenMetric] || GiPollenDust;
             const statusColor = getStatusColor(pollen.status * 2.5); // Convert severity to rough index equivalent
 
             return (

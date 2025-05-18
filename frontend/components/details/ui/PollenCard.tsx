@@ -60,7 +60,11 @@ function PollenCard({ className = "" }: PollenCardProps) {
 
           <div className="flex justify-between items-center py-3">
             <div className="flex items-center gap-3">
-              <div className="glass radial-progress text-current" style={{ "--value": index * 10, "--size": "3rem", "--thickness": "0.4rem" } as any}>
+              <div className="glass radial-progress text-current" style={{
+                ["--value" as string]: `${index * 10}`,
+                ["--size" as string]: "3rem",
+                ["--thickness" as string]: "0.4rem"
+              } as React.CSSProperties}>
                 <span className="text-lg font-bold">{loading ? "..." : index}</span>
               </div>
               <div className="grid">
