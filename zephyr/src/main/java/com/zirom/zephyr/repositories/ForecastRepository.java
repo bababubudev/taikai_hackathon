@@ -16,9 +16,24 @@ public interface ForecastRepository extends JpaRepository<ForecastMetrics, Integ
     List<ForecastMetrics> getAllByPoint_LatitudeBetweenAndPoint_LongitudeBetweenAndPoint_ForecastHourAndMetricType(double pointLatitudeAfter, double pointLatitudeBefore, double pointLongitudeAfter, double pointLongitudeBefore, Integer forecastHour, MetricType metricType);
 
     @Query(value = """
-    WITH nearest_point AS (
+
+        WITH nearest_point_uv AS (
         SELECT latitude, longitude
-        FROM forecast_points
+        FROM forecast_points fp
+        JOIN forecast_metrics fm ON fm.point_id = fp.id
+        WHERE fm.metric_type = 'uv'
+        ORDER BY
+            earth_distance(
+                ll_to_earth(69.9, 19),
+                ll_to_earth(latitude, longitude)
+            )
+        LIMIT 1
+    ),
+    nearest_point_other AS (
+        SELECT latitude, longitude
+        FROM forecast_points fp
+        JOIN forecast_metrics fm ON fm.point_id = fp.id
+        WHERE fm.metric_type = 'so2_conc'
         ORDER BY
             earth_distance(
                 ll_to_earth(:lat, :lng),
@@ -29,15 +44,25 @@ public interface ForecastRepository extends JpaRepository<ForecastMetrics, Integ
     SELECT fm.*
     FROM forecast_metrics fm
     JOIN forecast_points fp ON fm.point_id = fp.id
-    JOIN nearest_point np ON fp.latitude = np.latitude AND fp.longitude = np.longitude
-    WHERE fp.forecast_hour = :forecastHour
+    JOIN nearest_point_uv np ON fp.latitude = np.latitude AND fp.longitude = np.longitude
+    WHERE fp.forecast_hour = 2
+    
+    UNION ALL
+    
+    SELECT fm.*
+    FROM forecast_metrics fm
+    JOIN forecast_points fp ON fm.point_id = fp.id
+    JOIN nearest_point_other np ON fp.latitude = np.latitude AND fp.longitude = np.longitude
+    WHERE fp.forecast_hour = :forecastHour;
     """, nativeQuery = true)
     List<ForecastMetrics> findAllMetricsForNearestPoint(@Param("lat") double lat, @Param("lng") double lng, @Param("forecastHour") int forecastHour);
 
     @Query(value = """
     WITH nearest_point AS (
         SELECT latitude, longitude
-        FROM forecast_points
+        FROM forecast_points fp
+        JOIN forecast_metrics fm ON fm.point_id = fp.id
+        WHERE fm.metric_type=:metricType
         ORDER BY
             earth_distance(
                 ll_to_earth(:lat, :lng),
