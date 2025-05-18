@@ -143,7 +143,7 @@ function MapView({ isLoading, userLocation = null }: MapViewProps) {
     // 1 UVI ≈ 0.025 mW/cm² of UV radiation
     // Clamp result to 0 decimal places for standard UV Index scale
     if (isNaN(uv) || uv < 0) return 0;
-    const newUv = uv * 4;
+    const newUv = uv * 2;
     return Math.round(newUv / 0.025);
   };
 
