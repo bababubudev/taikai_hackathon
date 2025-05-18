@@ -40,7 +40,7 @@ function Header() {
                 tabIndex={0}
                 className="menu menu-sm dropdown-content items-stretch bg-base-100 rounded-box z-1 mt-3 max-w-fit p-2 shadow"
               >
-                <li><Link href={"/"} className="text-xl font-thin">about</Link></li>
+                <li><Link href={"/details"} className="text-xl font-thin">details</Link></li>
                 <li><Link href={"/"} className="text-xl font-thin">contact</Link></li>
               </ul>
             </>
@@ -53,7 +53,7 @@ function Header() {
           <Link href={"/"} className="btn btn-primary text-xl">Zephyr</Link>
           <div className="hidden lg:flex">
             <div className="divider divider-horizontal m-0 ml-4"></div>
-            <Link href={"#"} className="btn btn-ghost font-thin text-xl">about</Link>
+            <Link href={"/details"} className="btn btn-ghost font-thin text-xl">details</Link>
             <Link href={"#"} className="btn btn-ghost font-thin text-xl">contact</Link>
           </div>
         </div>

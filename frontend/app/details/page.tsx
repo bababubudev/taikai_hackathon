@@ -2,7 +2,6 @@
 
 import DashboardSidebar from "@/components/details/ui/DashboardSidebar";
 import StatsOverview from "@/components/details/StatsOverview";
-import { LatLngExpression } from "leaflet";
 import { useEffect, useState } from "react";
 import MapView from "@/components/details/MapView";
 
@@ -12,7 +11,7 @@ interface DetailPageProps {
 
 function DetailPage({ currentTab = "overview" }: DetailPageProps) {
   const [activeTab, setActiveTab] = useState(currentTab);
-  const [userLocation, setUserLocation] = useState<LatLngExpression | null>(null);
+  const [userLocation, setUserLocation] = useState<{ lat: number, lng: number } | null>(null);
   const [isLocating, setIsLocating] = useState(false);
 
   const getUserLocation = () => {
@@ -20,7 +19,7 @@ function DetailPage({ currentTab = "overview" }: DetailPageProps) {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
-          setUserLocation([position.coords.latitude, position.coords.longitude]);
+          setUserLocation({ lat: position.coords.latitude, lng: position.coords.longitude });
           setIsLocating(false);
         },
         (error) => {
@@ -41,8 +40,8 @@ function DetailPage({ currentTab = "overview" }: DetailPageProps) {
       case "overview":
         return (
           <StatsOverview
-            airIndex={60}
-            pollutant="Shart"
+            airIndex={40}
+            pollutant="Condom"
             pollutantValue={69}
             pollutantUnit={<>kg/m<sup>3</sup></>}
           />
@@ -55,13 +54,15 @@ function DetailPage({ currentTab = "overview" }: DetailPageProps) {
             userLocation={userLocation}
           />
         )
+      case "hourly-forecast":
+        return null;
       default:
         return <div>Select a section from the sidebar</div>;
     }
   };
 
   return (
-    <div className="drawer lg:drawer-open">
+    <div className="drawer lg:drawer-open min-h-full">
       <input id="dashboard-drawer" type="checkbox" className="drawer-toggle" />
       <div className="drawer-content p-4 pt-lg:p-8 lg:pt-24">
         <div className="lg:hidden flex items-center gap-4 mb-4 ">
