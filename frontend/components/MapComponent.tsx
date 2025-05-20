@@ -8,8 +8,6 @@ import { LatLngExpression } from "leaflet";
 import { SeverityStatus } from "@/lib/types";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 
-
-// Updated MapComponent with responsive controls
 interface MapComponentProp {
   position: LatLngExpression;
   currentDetail: string;
@@ -37,7 +35,13 @@ function ResponsiveMapControls() {
         map.getContainer().removeEventListener("touchstart", enableMapInteractions);
       };
 
-      map.getContainer().addEventListener("touchstart", enableMapInteractions);
+      map.getContainer().addEventListener("touchstart", enableMapInteractions, { passive: true });
+
+      return () => {
+        if (isMobile && map.getContainer()) {
+          map.getContainer().removeEventListener("touchstart", enableMapInteractions);
+        }
+      };
     } else {
       map.scrollWheelZoom.enable();
     }
@@ -75,11 +79,6 @@ const MapComponent = ({ position, currentDetail, value, status, statusMessage }:
 
   return (
     <div className="relative">
-      {isMobile && (
-        <div className="absolute top-0 left-0 right-0 z-10 bg-base-300 bg-opacity-70 text-center text-sm p-1 rounded-t-lg">
-          Tap map to enable interactions
-        </div>
-      )}
       <MapContainer
         center={position}
         zoom={isMobile ? 10 : 11}

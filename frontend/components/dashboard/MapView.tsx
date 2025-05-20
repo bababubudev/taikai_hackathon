@@ -438,20 +438,20 @@ function MapView({ isLoading, userLocation = null }: MapViewProps) {
 
   return (
     <div className="relative min-h-[320px]">
-      <div className="flex justify-between mb-4">
+      <div className="flex justify-between items-center mb-4">
         <div className="flex gap-2 items-center">
           {(loading) ?
             <>
               <span className="loading loading-spinner loading-xl text-primary"></span>
               <p className="text-sm md:text-lg animate-pulse italic">Gathering data...</p>
             </> :
-            <h3 className="text-2xl font-semibold">My Location</h3>
+            error ?
+              <div className="alert alert-error">
+                <span>{error}</span>
+              </div>
+              : <h3 className="text-2xl font-semibold">My Location</h3>
           }
-          {error &&
-            <div className="alert alert-error">
-              <span>{error}</span>
-            </div>
-          }
+
         </div>
         <TimeSelector
           currentHour={currentForecastHour}
