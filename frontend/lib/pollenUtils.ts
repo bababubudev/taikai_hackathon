@@ -16,32 +16,36 @@ interface PollenIndexResult {
 }
 
 /**
+ * Define thresholds for pollen concentration levels based on health impact
+ */
+const POLLEN_THRESHOLDS = {
+  [MetricTypes.ALDER_POLLEN]: { low: 0.05, medium: 0.3, high: 1.0, unit: "grains/m³" },
+  [MetricTypes.BIRCH_POLLEN]: { low: 30, medium: 90, high: 500, unit: "grains/m³" },
+  [MetricTypes.GRASS_POLLEN]: { low: 0.1, medium: 0.5, high: 2.0, unit: "grains/m³" },
+  [MetricTypes.MUGWORT_POLLEN]: { low: 0.000000000001, medium: 0.0000000001, high: 0.00000001, unit: "grains/m³" },
+  [MetricTypes.OLIVE_POLLEN]: { low: 0.0005, medium: 0.005, high: 0.05, unit: "grains/m³" },
+  [MetricTypes.RAGWEED_POLLEN]: { low: 0.0000000001, medium: 0.000000001, high: 0.0000001, unit: "grains/m³" }
+};
+
+/**
+ * Friendly names for pollen types
+ */
+const POLLEN_NAMES = {
+  [MetricTypes.ALDER_POLLEN]: "Alder",
+  [MetricTypes.BIRCH_POLLEN]: "Birch",
+  [MetricTypes.GRASS_POLLEN]: "Grass",
+  [MetricTypes.MUGWORT_POLLEN]: "Mugwort",
+  [MetricTypes.OLIVE_POLLEN]: "Olive",
+  [MetricTypes.RAGWEED_POLLEN]: "Ragweed"
+};
+
+/**
  * Calculate pollen index and detailed information from weather data
  *
  * @param weatherData - The weather data containing pollen metrics
  * @returns PollenIndexResult with overall index and detailed info
  */
 export function calculatePollenIndex(weatherData: Record<string, ZephyrData | null>): PollenIndexResult {
-  // Define thresholds for pollen types
-  const thresholds = {
-    [MetricTypes.ALDER_POLLEN]: { low: 0.05, medium: 0.3, high: 1.0, unit: "grains/m³" },
-    [MetricTypes.BIRCH_POLLEN]: { low: 30, medium: 90, high: 500, unit: "grains/m³" },
-    [MetricTypes.GRASS_POLLEN]: { low: 0.1, medium: 0.5, high: 2.0, unit: "grains/m³" },
-    [MetricTypes.MUGWORT_POLLEN]: { low: 0.000000000001, medium: 0.0000000001, high: 0.00000001, unit: "grains/m³" },
-    [MetricTypes.OLIVE_POLLEN]: { low: 0.0005, medium: 0.005, high: 0.05, unit: "grains/m³" },
-    [MetricTypes.RAGWEED_POLLEN]: { low: 0.0000000001, medium: 0.000000001, high: 0.0000001, unit: "grains/m³" }
-  };
-
-  // Friendly names for pollen types
-  const pollenNames = {
-    [MetricTypes.ALDER_POLLEN]: "Alder",
-    [MetricTypes.BIRCH_POLLEN]: "Birch",
-    [MetricTypes.GRASS_POLLEN]: "Grass",
-    [MetricTypes.MUGWORT_POLLEN]: "Mugwort",
-    [MetricTypes.OLIVE_POLLEN]: "Olive",
-    [MetricTypes.RAGWEED_POLLEN]: "Ragweed"
-  };
-
   // Process each pollen type
   const individualPollens: Record<string, PollenInfo> = {};
   let highestSeverity = SeverityStatus.NONE;
@@ -49,11 +53,11 @@ export function calculatePollenIndex(weatherData: Record<string, ZephyrData | nu
   let dominantPollenRatio = 0;
 
   // Process available pollen data
-  Object.entries(thresholds).forEach(([metricType, threshold]) => {
+  Object.entries(POLLEN_THRESHOLDS).forEach(([metricType, threshold]) => {
     const data = weatherData[metricType as MetricTypes];
 
     if (data) {
-      // Determine severity based on thresholds
+      // Determine severity based on thresholds rather than API status
       let status = SeverityStatus.NONE;
       const value = data.value;
 
@@ -67,7 +71,7 @@ export function calculatePollenIndex(weatherData: Record<string, ZephyrData | nu
 
       // Store pollen info
       individualPollens[metricType] = {
-        name: pollenNames[metricType as keyof typeof pollenNames],
+        name: POLLEN_NAMES[metricType as keyof typeof POLLEN_NAMES],
         value,
         status,
         unit: threshold.unit
@@ -123,7 +127,7 @@ export function calculatePollenIndex(weatherData: Record<string, ZephyrData | nu
   return {
     index,
     level,
-    dominantPollen: dominantPollenType ? pollenNames[dominantPollenType as keyof typeof pollenNames] : "None",
+    dominantPollen: dominantPollenType ? POLLEN_NAMES[dominantPollenType as keyof typeof POLLEN_NAMES] : "None",
     individualPollens
   };
 }

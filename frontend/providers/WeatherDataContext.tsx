@@ -21,35 +21,39 @@ interface WeatherDataProviderProps {
   initialForecastHour?: number;
 }
 
+const createEmptyWeatherData = (): Record<MetricTypes, ZephyrData | null> => {
+  const data: Partial<Record<MetricTypes, ZephyrData | null>> = {};
+  Object.values(MetricTypes).forEach(metric => {
+    data[metric] = null;
+  });
+  return data as Record<MetricTypes, ZephyrData | null>;
+};
+
 export function WeatherDataProvider({
   children,
   initialLocation,
   initialForecastHour = 1
 }: WeatherDataProviderProps) {
-  const [weatherData, setWeatherData] = useState<Record<MetricTypes, ZephyrData | null>>({
-    [MetricTypes.UV]: null,
-    [MetricTypes.TEMPERATURE]: null,
-    [MetricTypes.SURFACE_PRESSURE]: null,
-    [MetricTypes.PM25]: null,
-    [MetricTypes.CO_CONCENTRATION]: null,
-    [MetricTypes.ALDER_POLLEN]: null,
-    [MetricTypes.BIRCH_POLLEN]: null,
-    [MetricTypes.GRASS_POLLEN]: null,
-    [MetricTypes.MUGWORT_POLLEN]: null,
-    [MetricTypes.OLIVE_POLLEN]: null,
-    [MetricTypes.RAGWEED_POLLEN]: null,
-    [MetricTypes.NMVOC_CONCENTRATION]: null,
-    [MetricTypes.NO2_CONCENTRATION]: null,
-    [MetricTypes.O3_CONCENTRATION]: null,
-    [MetricTypes.PM10_CONCENTRATION]: null,
-    [MetricTypes.SO2_CONCENTRATION]: null,
-  });
+  const getCurrentHour = () => {
+    return initialForecastHour !== undefined ? initialForecastHour : new Date().getHours();
+  };
+
+  const [weatherData, setWeatherData] = useState<Record<MetricTypes, ZephyrData | null>>(createEmptyWeatherData());
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [currentForecastHour, setCurrentForecastHour] = useState(initialForecastHour);
+  const [currentForecastHour, setCurrentForecastHour] = useState(getCurrentHour());
+
+  const setForecastHour = useCallback((hour: number) => {
+    // Ensure hour is within valid range (0-23)
+    const validHour = Math.max(0, Math.min(23, hour));
+    setCurrentForecastHour(validHour);
+  }, []);
 
   const API_BASE_URL = "https://zephyr.190304.xyz/api/v1/data";
+
+  const [responseCache, setResponseCache] = useState<Map<string, { data: ZephyrData[], timestamp: number }>>(new Map());
+  const CACHE_EXPIRY = 5 * 60 * 1000;
 
   const fetchDataForMetric = useCallback(async (
     metricType: MetricTypes,
@@ -58,6 +62,13 @@ export function WeatherDataProvider({
   ): Promise<ZephyrData | null> => {
     try {
       const url = `${API_BASE_URL}?lng=${location.lng}&lat=${location.lat}&forecastHour=${forecastHour}&metricType=${metricType}`;
+      const cacheKey = `${url}`;
+      const cachedResponse = responseCache.get(cacheKey);
+      const now = Date.now();
+
+      if (cachedResponse && (now - cachedResponse.timestamp) < CACHE_EXPIRY) {
+        return cachedResponse.data.length > 0 ? cachedResponse.data[0] : null;
+      }
 
       const res = await fetch(url);
 
@@ -66,6 +77,11 @@ export function WeatherDataProvider({
       }
 
       const data = await res.json() as ZephyrData[];
+      setResponseCache(prev => {
+        const newCache = new Map(prev);
+        newCache.set(cacheKey, { data, timestamp: now });
+        return newCache;
+      });
 
       return data && data.length > 0 ? data[0] : null;
     } catch (err) {
@@ -73,7 +89,7 @@ export function WeatherDataProvider({
       setError(err instanceof Error ? err.message : "Unknown error occurred");
       return null;
     }
-  }, [currentForecastHour]);
+  }, [CACHE_EXPIRY, currentForecastHour, responseCache]);
 
   const fetchDataForLocation = useCallback(async (
     location: Location,
@@ -89,18 +105,40 @@ export function WeatherDataProvider({
 
     try {
       const url = `${API_BASE_URL}?lng=${location.lng}&lat=${location.lat}&forecastHour=${forecastHour}`;
-      const res = await fetch(url);
 
+      const cacheKey = `${url}`;
+      const cachedResponse = responseCache.get(cacheKey);
+      const now = Date.now();
+
+      if (cachedResponse && (now - cachedResponse.timestamp) < CACHE_EXPIRY) {
+        const newWeatherData = cachedResponse.data.reduce((acc, item) => {
+          acc[item.metricType] = item;
+          return acc;
+        }, createEmptyWeatherData());
+
+        setWeatherData(newWeatherData);
+        setLoading(false);
+        return;
+      }
+
+      const res = await fetch(url);
       if (!res.ok) {
         throw new Error(`Failed to fetch data: ${res.status}`);
       }
 
       const data = await res.json() as ZephyrData[];
 
+      setResponseCache(prev => {
+        const newCache = new Map(prev);
+        newCache.set(cacheKey, { data, timestamp: now });
+
+        return newCache;
+      });
+
       const newWeatherData = data.reduce((acc, item) => {
         acc[item.metricType] = item;
         return acc;
-      }, {} as Record<MetricTypes, ZephyrData | null>);
+      }, createEmptyWeatherData());
 
       setWeatherData(newWeatherData);
     } catch (err) {
@@ -109,7 +147,7 @@ export function WeatherDataProvider({
     } finally {
       setLoading(false);
     }
-  }, [currentForecastHour]);
+  }, [CACHE_EXPIRY, currentForecastHour, responseCache]);
 
 
   useEffect(() => {
@@ -126,7 +164,7 @@ export function WeatherDataProvider({
         error,
         fetchDataForLocation,
         fetchDataForMetric,
-        setForecastHour: setCurrentForecastHour,
+        setForecastHour,
         currentForecastHour
       }}
     >

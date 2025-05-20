@@ -6,8 +6,9 @@ import { useEffect, useState } from "react";
 import { MetricTypes, SeverityStatus } from "@/lib/types";
 import { useWeatherData } from "@/providers/WeatherDataContext";
 import { TbUvIndex } from "react-icons/tb";
-import { FaTemperatureLow, FaBuffer } from "react-icons/fa";
+import { FaTemperatureLow, FaBuffer, FaInfoCircle, FaExclamationTriangle } from "react-icons/fa";
 import { GiPollenDust } from "react-icons/gi";
+import TimeSelector from "./ui/TimeSelector";
 
 interface MapViewProps {
   isLoading: boolean;
@@ -24,6 +25,7 @@ const NORMALS = {
 function MapView({ isLoading, userLocation = null }: MapViewProps) {
   const { weatherData, loading, error, fetchDataForLocation, currentForecastHour, setForecastHour } = useWeatherData();
   const [currentDetail, setCurrentDetail] = useState<MetricTypes>(MetricTypes.PM25);
+  const [showAllRecommendations, setShowAllRecommendations] = useState(false);
 
   useEffect(() => {
     if (userLocation && !loading) {
@@ -81,15 +83,26 @@ function MapView({ isLoading, userLocation = null }: MapViewProps) {
             return "Pressure data unavailable.";
         }
       case MetricTypes.TEMPERATURE:
-        switch (status) {
-          case SeverityStatus.HIGH:
-            return "High temperature. Stay hydrated and avoid heat exposure.";
-          case SeverityStatus.MEDIUM:
-            return "Warm weather. Stay comfortable.";
-          case SeverityStatus.LOW:
-            return "Cool or cold. Dress accordingly.";
-          default:
-            return "Temperature data unavailable.";
+        const tempCelsius = temperatureData ? temperatureData.value - 273.15 : null;
+
+        if (tempCelsius === null) {
+          return "Temperature data unavailable.";
+        }
+
+        if (tempCelsius > 30) {
+          return `Outside temperature is very hot. Stay hydrated, seek shade, and limit outdoor activities during peak hours.`;
+        } else if (tempCelsius > 25) {
+          return `Outside temperature is hotter than normal. Stay hydrated and take breaks from the heat when needed.`;
+        } else if (tempCelsius > 20) {
+          return `Outside temperature is warmer than normal. Comfortable conditions for most outdoor activities.`;
+        } else if (tempCelsius > 10) {
+          return `Outside temperature is milder than normal. Light clothing may be sufficient.`;
+        } else if (tempCelsius > 0) {
+          return `Outside temperature is a bit cooler than normal. Consider wearing layers for comfort.`;
+        } else if (tempCelsius > -10) {
+          return `Outside temperature is colder than normal. Dress warmly and protect extremities.`;
+        } else {
+          return `Outside temperature is very cold. Limit time outdoors and wear appropriate winter clothing.`;
         }
       default:
         return "No data available.";
@@ -157,60 +170,271 @@ function MapView({ isLoading, userLocation = null }: MapViewProps) {
   const pressure = pressureData ? (pressureData.value / 100).toFixed(2) : "N/A";
   const temperature = temperatureData ? (temperatureData.value - 273.15).toFixed(1) : "N/A";
 
+  // Enhanced Health Summary with Scientific Basis
   const getCombinedHealthSummary = () => {
-    if (isNaN(Number(uv)) || isNaN(Number(fineParticles)) || isNaN(Number(pressure)) || isNaN(Number(temperature))) return { message: "", riskScore: 0 };
+    if (isNaN(Number(uv)) || isNaN(Number(fineParticles)) || isNaN(Number(pressure)) || isNaN(Number(temperature)))
+      return { message: "", riskScore: 0, recommendations: [] };
 
-    const messages: string[] = [];
-    let riskScore = 0;
+    const risks: {
+      factor: string;
+      message: string;
+      score: number;
+      recommendations: string[]
+    }[] = [];
 
     // Temperature Analysis
+    // Using WHO thermal comfort guidelines and heat/cold stress thresholds
     if (Number(temperature)) {
-      const deviation = Number(temperature) - (NORMALS[MetricTypes.TEMPERATURE].avg - 273.15);
-      if (Math.abs(deviation) > NORMALS[MetricTypes.TEMPERATURE].threshold) {
-        messages.push(`🌡️ It's ${deviation > 0 ? "hotter" : "colder"} than usual by about ${Math.abs(deviation).toFixed(1)}°C.`);
-        riskScore += 1;
+      const tempValue = Number(temperature);
+      const deviation = tempValue - (NORMALS[MetricTypes.TEMPERATURE].avg - 273.15);
+
+      if (tempValue >= 35) {
+        risks.push({
+          factor: "Extreme Heat",
+          message: `🌡️ Extreme heat conditions of ${tempValue.toFixed(1)}°C. Heat-related illnesses are possible.`,
+          score: 3,
+          recommendations: [
+            "Stay in air-conditioned spaces",
+            "Drink plenty of fluids",
+            "Avoid outdoor activities during peak hours",
+            "Check on vulnerable individuals"
+          ]
+        });
+      } else if (tempValue >= 30) {
+        risks.push({
+          factor: "High Heat",
+          message: `🌡️ Elevated temperatures of ${tempValue.toFixed(1)}°C may cause heat stress in susceptible individuals.`,
+          score: 2,
+          recommendations: [
+            "Increase fluid intake",
+            "Take regular breaks in shade",
+            "Wear lightweight clothing"
+          ]
+        });
+      } else if (tempValue <= 0) {
+        risks.push({
+          factor: "Cold Conditions",
+          message: `🌡️ Cold conditions of ${tempValue.toFixed(1)}°C may pose hypothermia risk to vulnerable populations.`,
+          score: 2,
+          recommendations: [
+            "Wear layers of warm clothing",
+            "Keep extremities covered",
+            "Maintain indoor heating"
+          ]
+        });
+      } else if (Math.abs(deviation) > NORMALS[MetricTypes.TEMPERATURE].threshold) {
+        risks.push({
+          factor: "Temperature Variation",
+          message: `🌡️ Temperature is ${deviation > 0 ? "above" : "below"} seasonal average by ${Math.abs(deviation).toFixed(1)}°C.`,
+          score: 1,
+          recommendations: [
+            deviation > 0 ? "Increase fluid intake" : "Dress in appropriate layers",
+            "Adjust indoor climate control accordingly"
+          ]
+        });
       }
     }
 
-    // UV Index
-    if (Number(uv) > NORMALS[MetricTypes.UV].threshold) {
-      messages.push("☀️ UV levels are elevated. Skin protection is advised.");
-      riskScore += 1;
-    }
+    // UV Index Analysis
+    // Based on WHO UV Index guidelines
+    if (!isNaN(Number(uv))) {
+      const uvIndex = convertUvToIndex(Number(uv));
 
-    // PM2.5
-    if (Number(fineParticles) > NORMALS[MetricTypes.PM25].threshold) {
-      messages.push("🌫️ Air contains fine particles. Sensitive individuals should limit outdoor exposure.");
-      riskScore += 2;
-    }
-
-    // Pressure
-    if (Number(pressure)) {
-      const delta = Math.abs(Number(pressure) - NORMALS[MetricTypes.SURFACE_PRESSURE].avg);
-      if (delta > NORMALS[MetricTypes.SURFACE_PRESSURE].threshold) {
-        messages.push("📉 Pressure shifts may cause discomfort for people with migraines or joint issues.");
-        riskScore += 1;
+      if (uvIndex >= 11) {
+        risks.push({
+          factor: "Extreme UV",
+          message: "☀️ Extreme UV radiation levels. Significant skin and eye damage can occur rapidly.",
+          score: 3,
+          recommendations: [
+            "Avoid sun exposure between 10am and 4pm",
+            "Apply SPF 50+ sunscreen every 2 hours",
+            "Wear protective clothing and UV-blocking sunglasses",
+            "Seek shade consistently"
+          ]
+        });
+      } else if (uvIndex >= 8) {
+        risks.push({
+          factor: "Very High UV",
+          message: "☀️ Very high UV radiation levels present significant risk of harm from unprotected sun exposure.",
+          score: 2,
+          recommendations: [
+            "Apply SPF 30+ sunscreen every 2 hours",
+            "Wear hat, sunglasses and protective clothing",
+            "Reduce midday sun exposure"
+          ]
+        });
+      } else if (uvIndex >= 6) {
+        risks.push({
+          factor: "High UV",
+          message: "☀️ High UV radiation levels require sun protection measures.",
+          score: 1,
+          recommendations: [
+            "Apply SPF 30+ sunscreen",
+            "Wear protective clothing",
+            "Seek shade during midday hours"
+          ]
+        });
+      } else if (uvIndex >= 3) {
+        risks.push({
+          factor: "Moderate UV",
+          message: "☀️ Moderate UV radiation levels. Some protection recommended for extended outdoor activities.",
+          score: 0.5,
+          recommendations: [
+            "Apply SPF 15+ sunscreen for extended exposure",
+            "Wear sunglasses on bright days"
+          ]
+        });
       }
     }
 
-    if (Number(temperature) > 25 && Number(fineParticles) > NORMALS[MetricTypes.PM25].threshold) {
-      messages.push("⚠️ High heat and air pollution may worsen symptoms for asthmatics or people with respiratory conditions.");
-      riskScore += 2;
+    // PM2.5 Analysis
+    // Based on EPA and WHO air quality guidelines
+    if (!isNaN(Number(fineParticles))) {
+      const pm25Value = Number(fineParticles);
+
+      if (pm25Value >= 35.5) {
+        risks.push({
+          factor: "Unhealthy PM2.5",
+          message: "🌫️ Fine particulate matter (PM2.5) levels are unhealthy and may cause respiratory symptoms in sensitive groups.",
+          score: 3,
+          recommendations: [
+            "Limit outdoor physical activities",
+            "Consider using air purifiers indoors",
+            "Keep windows closed",
+            "People with respiratory or heart conditions should take extra precautions"
+          ]
+        });
+      } else if (pm25Value >= 12.1) {
+        risks.push({
+          factor: "Moderate PM2.5",
+          message: "🌫️ Moderate fine particulate matter (PM2.5) levels may affect unusually sensitive individuals.",
+          score: 1,
+          recommendations: [
+            "Unusually sensitive people should consider reducing prolonged outdoor exertion",
+            "Close windows during peak traffic hours"
+          ]
+        });
+      } else if (pm25Value > NORMALS[MetricTypes.PM25].threshold) {
+        risks.push({
+          factor: "Elevated PM2.5",
+          message: "🌫️ Fine particulate matter (PM2.5) levels are slightly elevated but generally acceptable.",
+          score: 0.5,
+          recommendations: [
+            "No special precautions needed for general population",
+            "Sensitive individuals may want to monitor symptoms"
+          ]
+        });
+      }
     }
 
-    if (messages.length === 0) {
-      return { message: "✅ Today's weather poses minimal health risks. Stay safe and enjoy your day!", riskScore: 0 };
+    // Pressure Analysis
+    // Based on barometric pressure effects on health research
+    if (!isNaN(Number(pressure))) {
+      const pressureValue = Number(pressure);
+      const pressureInHpa = pressureValue;
+      const delta = Math.abs(pressureInHpa - NORMALS[MetricTypes.SURFACE_PRESSURE].avg / 100);
+
+      if (delta > 15) {
+        risks.push({
+          factor: "Significant Pressure Change",
+          message: "📉 Significant barometric pressure changes may trigger migraines, joint pain, or cardiovascular stress in sensitive individuals.",
+          score: 2,
+          recommendations: [
+            "Monitor symptoms if you have pressure-sensitive conditions",
+            "Stay hydrated",
+            "Consider preventative medication if prescribed for pressure-triggered conditions"
+          ]
+        });
+      } else if (delta > 8) {
+        risks.push({
+          factor: "Moderate Pressure Change",
+          message: "📉 Moderate barometric pressure changes may affect individuals with pressure-sensitive conditions.",
+          score: 1,
+          recommendations: [
+            "Be aware of potential symptom triggers",
+            "Maintain regular medication schedule if applicable"
+          ]
+        });
+      }
     }
 
-    return { message: messages.join(" "), riskScore };
+    // Compound Effects (Multiple factors) - research-supported synergistic effects
+    if (Number(temperature) > 25 && Number(fineParticles) > 12) {
+      risks.push({
+        factor: "Heat-Pollution Compound Effect",
+        message: "⚠️ Combined high temperature and air pollution may exacerbate respiratory and cardiovascular symptoms.",
+        score: 2,
+        recommendations: [
+          "Limit outdoor physical activity",
+          "Stay in air-conditioned environments when possible",
+          "Increase fluid intake",
+          "Monitor symptoms if you have pre-existing respiratory or cardiovascular conditions"
+        ]
+      });
+    }
+
+    if (convertUvToIndex(Number(uv)) >= 6 && Number(temperature) > 28) {
+      risks.push({
+        factor: "UV-Heat Compound Effect",
+        message: "⚠️ Combined high UV and temperature increases risk of heat-related illness and sunburn.",
+        score: 2,
+        recommendations: [
+          "Seek shade frequently",
+          "Apply high SPF sunscreen regularly",
+          "Increase fluid intake beyond normal levels",
+          "Plan outdoor activities for early morning or evening"
+        ]
+      });
+    }
+
+    // Calculate overall risk score
+    let overallRiskScore = 0;
+    const allRecommendations: string[] = [];
+
+    risks.forEach(risk => {
+      overallRiskScore += risk.score;
+      risk.recommendations.forEach(rec => {
+        if (!allRecommendations.includes(rec)) {
+          allRecommendations.push(rec);
+        }
+      });
+    });
+
+    // Determine summary message based on risk factors
+    let summaryMessage = "";
+    if (risks.length === 0) {
+      summaryMessage = "✅ Current environmental conditions pose minimal health risks. All measured parameters are within favorable ranges.";
+    } else {
+      const riskMessages = risks.map(r => r.message);
+      summaryMessage = riskMessages.join(" ");
+    }
+
+    // Normalize risk score to 0-10 scale for consistent display
+    const normalizedScore = Math.min(10, Math.ceil(overallRiskScore * 1.5));
+
+    return {
+      message: summaryMessage,
+      riskScore: normalizedScore,
+      recommendations: allRecommendations
+    };
   };
 
-  const handleHourChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const selectedHour = Number(e.target.value);
-    setForecastHour(selectedHour);
+  const handleHourChange = (hour: number) => {
+    setForecastHour(hour);
   };
 
   const combinedSummary = getCombinedHealthSummary();
+  const displayRecommendations = showAllRecommendations ?
+    combinedSummary.recommendations :
+    combinedSummary.recommendations.slice(0, 3);
+
+  // Function to get the risk level description
+  const getRiskLevelDescription = (score: number): string => {
+    if (score >= 8) return "High";
+    if (score >= 4) return "Moderate";
+    if (score >= 1) return "Low";
+    return "Minimal";
+  };
 
   return (
     <div className="relative min-h-[320px]">
@@ -229,16 +453,10 @@ function MapView({ isLoading, userLocation = null }: MapViewProps) {
             </div>
           }
         </div>
-        <select
-          value={currentForecastHour}
+        <TimeSelector
+          currentHour={currentForecastHour}
           onChange={handleHourChange}
-          className="select max-w-1/2 lg:max-w-none"
-        >
-          <option disabled={true}>Pick a forecast hour</option>
-          {[1, 2, 3, 4, 5, 6].map(hour => (
-            <option key={hour} value={hour}>Hour {hour}</option>
-          ))}
-        </select>
+        />
       </div>
       {(!isLoading || weatherData[MetricTypes.UV]) ? (
         <div className="grid lg:grid-cols-[2fr_1fr] grid-cols-1 gap-4">
@@ -326,24 +544,63 @@ function MapView({ isLoading, userLocation = null }: MapViewProps) {
 
       <div className="mt-6 p-4 border border-base-300 bg-base-200 rounded-lg shadow-sm space-y-2">
         <div className="flex justify-between gap-2 items-center">
-          <h3 className="text-lg font-semibold">Combined Health Impact</h3>
-          <div className={`badge badge-soft min-w-24 ${combinedSummary.riskScore >= 4
+          <h3 className="text-lg font-semibold flex items-center gap-2">
+            <FaExclamationTriangle className={`${combinedSummary.riskScore >= 4 ? "text-warning" : "text-success"}`} />
+            Health Assessment
+          </h3>
+          <div className={`badge badge-soft min-w-24 ${combinedSummary.riskScore >= 8
             ? "badge-error"
-            : combinedSummary.riskScore >= 2
+            : combinedSummary.riskScore >= 4
               ? "badge-warning"
-              : "badge-success"
+              : combinedSummary.riskScore >= 1
+                ? "badge-success"
+                : "badge-info"
             }`}>
-            Risk: {combinedSummary.riskScore}
+            Risk: {getRiskLevelDescription(combinedSummary.riskScore)}
           </div>
         </div>
 
         {combinedSummary.message ? (
-          <div className="text-sm text-base-content/80 leading-relaxed">
-            {combinedSummary.message.split(" ").map((word, idx) => {
-              return word.includes("⚠️") || word.includes("📉") || word.includes("🌫️") || word.includes("☀️") || word.includes("🌡️")
-                ? <strong key={idx} className="text-warning">{word} </strong>
-                : <span key={idx}>{word} </span>;
-            })}
+          <div className="card bg-base-100 shadow-sm">
+            <div className="card-body p-3">
+              <h4 className="text-sm font-medium">Assessment</h4>
+              <div className="text-sm text-base-content/80 leading-relaxed">
+                {combinedSummary.message.split(" ").map((word, idx) => {
+                  return word.includes("⚠️") || word.includes("📉") || word.includes("🌫️") || word.includes("☀️") || word.includes("🌡️")
+                    ? <strong key={idx} className="text-warning">{word} </strong>
+                    : <span key={idx}>{word} </span>;
+                })}
+              </div>
+
+              {combinedSummary.recommendations.length > 0 && (
+                <>
+                  <div className="divider my-1"></div>
+                  <h4 className="text-sm font-medium">Recommendations</h4>
+                  <ul className="text-sm space-y-1 ml-1">
+                    {displayRecommendations.map((rec, idx) => (
+                      <li key={idx} className="flex items-start gap-2">
+                        <span className="text-success">•</span>
+                        <span>{rec}</span>
+                      </li>
+                    ))}
+                  </ul>
+
+                  {combinedSummary.recommendations.length > 3 && (
+                    <button
+                      className="btn btn-xs btn-ghost mt-1"
+                      onClick={() => setShowAllRecommendations(!showAllRecommendations)}
+                    >
+                      {showAllRecommendations ? "Show less" : `Show ${combinedSummary.recommendations.length - 3} more recommendations`}
+                    </button>
+                  )}
+                </>
+              )}
+
+              <div className="mt-2 flex items-center text-xs text-base-content/60">
+                <FaInfoCircle className="mr-1" />
+                <span>Assessment based on WHO and EPA guidelines</span>
+              </div>
+            </div>
           </div>
         ) : (
           <div className="alert alert-info alert-soft text-sm">
