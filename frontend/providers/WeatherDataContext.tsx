@@ -35,6 +35,10 @@ export function WeatherDataProvider({
   initialForecastHour = 1
 }: WeatherDataProviderProps) {
   const getCurrentHour = () => {
+    if (typeof window !== "undefined") {
+      return initialForecastHour !== undefined ? initialForecastHour : new Date().getHours();
+    }
+
     return initialForecastHour !== undefined ? initialForecastHour : new Date().getHours();
   };
 
@@ -61,6 +65,10 @@ export function WeatherDataProvider({
     forecastHour: number = currentForecastHour
   ): Promise<ZephyrData | null> => {
     try {
+      if (typeof window === "undefined") {
+        return null;
+      }
+
       const url = `${API_BASE_URL}?lng=${location.lng}&lat=${location.lat}&forecastHour=${forecastHour}&metricType=${metricType}`;
       const cacheKey = `${url}`;
       const cachedResponse = responseCache.get(cacheKey);
@@ -95,6 +103,10 @@ export function WeatherDataProvider({
     location: Location,
     forecastHour: number = currentForecastHour
   ): Promise<void> => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
     if (!location || typeof location.lat !== "number" || typeof location.lng !== "number") {
       setError("Invalid location data");
       return;
@@ -151,7 +163,7 @@ export function WeatherDataProvider({
 
 
   useEffect(() => {
-    if (initialLocation) {
+    if (typeof window !== "undefined" && initialLocation) {
       fetchDataForLocation(initialLocation, currentForecastHour);
     }
   }, [initialLocation, currentForecastHour, fetchDataForLocation]);

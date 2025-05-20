@@ -1,12 +1,17 @@
 "use client";
 
-import DashboardSidebar from "@/components/dashboard/ui/DashboardSidebar";
-import StatsOverview from "@/components/dashboard/StatsOverview";
 import { useEffect, useState } from "react";
-import MapView from "@/components/dashboard/MapView";
 import { WeatherDataProvider } from "@/providers/WeatherDataContext";
 import { Location } from "@/lib/types";
-import PollenOverview from "@/components/dashboard/PollenOverview";
+import dynamic from "next/dynamic";
+import StatsOverview from "./StatsOverview";
+import PollenOverview from "./PollenOverview";
+import DashboardSidebar from "./ui/DashboardSidebar";
+
+const MapViewNoSSR = dynamic(
+  () => import("@/components/dashboard/MapView"),
+  { ssr: false }
+);
 
 function DetailPage() {
   const [activeTab, setActiveTab] = useState("overview");
@@ -15,7 +20,8 @@ function DetailPage() {
 
   const getUserLocation = () => {
     setIsLocating(true);
-    if (navigator.geolocation) {
+    // Only access geolocation in the browser
+    if (typeof window !== "undefined" && window.navigator?.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
           setUserLocation({ lat: position.coords.latitude, lng: position.coords.longitude });
@@ -24,14 +30,20 @@ function DetailPage() {
         (error) => {
           console.error("Error getting location:", error);
           setIsLocating(false);
-          // Fall back to IP-based geolocation or default location
+          setUserLocation({ lat: 61.4971, lng: 23.7526 });
         }
       );
+    } else {
+      setIsLocating(false);
+      setUserLocation({ lat: 61.4971, lng: 23.7526 });
     }
   };
 
   useEffect(() => {
-    getUserLocation();
+    // Only run in the browser
+    if (typeof window !== "undefined") {
+      getUserLocation();
+    }
   }, []);
 
   const renderContent = () => {
@@ -45,7 +57,7 @@ function DetailPage() {
 
       case "map":
         return (
-          <MapView
+          <MapViewNoSSR
             isLoading={isLocating}
             userLocation={userLocation}
           />
@@ -94,7 +106,6 @@ function DetailPage() {
         </div>
       </div>
     </WeatherDataProvider>
-
   );
 }
 

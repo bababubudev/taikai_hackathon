@@ -1,6 +1,8 @@
 import DashboardView from "@/components/dashboard/DashboardView";
 import StructuredData from "@/components/StructuredData";
 
+export const dynamic = "force-dynamic";
+
 export default function Dashboard() {
   const dashboardSchema = {
     "@context": "https://schema.org",
@@ -10,7 +12,7 @@ export default function Dashboard() {
     "offers": {
       "@type": "Offer",
       "price": "0",
-      "priceCurrency": "USD"
+      "priceCurrency": "EUR"
     },
     "operatingSystem": "Web",
     "description": "Interactive dashboard showing personalized environmental health metrics at your location."
