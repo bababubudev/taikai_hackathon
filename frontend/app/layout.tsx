@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Header from "@/components/Header";
@@ -13,19 +13,61 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-export const metadata: Metadata = {
-  title: "Zephyr",
-  description: "Project for hackathon hacking and stuff",
-  icons: [
-    { url: "/icons/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
-    { url: "/icons/darklogo.png", type: "image/png" },
-    { url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
-    { url: "/icons/icon-192-maskable.png", sizes: "192x192", type: "image/png" },
-    { url: "/icons/icon-512.png", sizes: "512x512", type: "image/png" },
-    { url: "/icons/icon-512-maskable.png", sizes: "512x512", type: "image/png" },
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
+  userScalable: true,
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
+    { media: "(prefers-color-scheme: dark)", color: "#1a1a1a" },
   ],
 };
 
+export const metadata: Metadata = {
+  title: "Zephyr | Environmental Health Monitor & Alerts",
+  description: "Track local air quality, pollen levels, UV index and get personalized health recommendations based on your environment. Stay informed about how weather affects your well-being.",
+  keywords: "environmental health, air quality index, pollen tracker, UV index monitor, weather health alerts, environmental monitoring, health app",
+  openGraph: {
+    title: "Zephyr - Your Personal Environmental Health Monitor",
+    description: "Get real-time alerts about environmental conditions affecting your health. Track air quality, pollen, UV exposure and more at your exact location.",
+    images: [
+      {
+        url: "/hero/photo-collage.webp",
+        width: 1200,
+        height: 630,
+        alt: "Zephyr environmental health dashboard preview",
+      }
+    ],
+    locale: "en_US",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Zephyr - Environmental Health Monitor & Alerts",
+    description: "Stay informed about environmental factors affecting your health with personalized alerts and recommendations.",
+    images: ["/hero/main_hero.webp"],
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    }
+  },
+  alternates: {
+    canonical: "https://taikai-hackathon.vercel.app",
+    languages: {
+      "en-US": "https://taikai-hackathon.vercel.app",
+    },
+  },
+  verification: {
+    // google: "your-google-verification-code",
+  },
+};
 
 export default function RootLayout({
   children,

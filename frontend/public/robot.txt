@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+
+# Disallow any admin or private areas you might add later
+Disallow: /admin/
+Disallow: /user/
+Disallow: /api/
+
+Sitemap: https://https://taikai-hackathon.vercel.app/sitemap.xml

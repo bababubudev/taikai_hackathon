@@ -1,12 +1,12 @@
 "use client";
 
-import DashboardSidebar from "@/components/details/ui/DashboardSidebar";
-import StatsOverview from "@/components/details/StatsOverview";
+import DashboardSidebar from "@/components/dashboard/ui/DashboardSidebar";
+import StatsOverview from "@/components/dashboard/StatsOverview";
 import { useEffect, useState } from "react";
-import MapView from "@/components/details/MapView";
+import MapView from "@/components/dashboard/MapView";
 import { WeatherDataProvider } from "@/providers/WeatherDataContext";
 import { Location } from "@/lib/types";
-import PollenOverview from "@/components/details/PollenOverview";
+import PollenOverview from "@/components/dashboard/PollenOverview";
 
 function DetailPage() {
   const [activeTab, setActiveTab] = useState("overview");
