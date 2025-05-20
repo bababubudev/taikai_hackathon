@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Your Personal Environmental Health Dashboard | Zephyr",
     description: "Track real-time environmental health metrics tailored to your location. Get insights and recommendations for better health.",
-    images: ["/images/dashboard-preview.jpg"],
+    images: ["/main/photo-collage.webp"],
     type: "website",
   },
 };

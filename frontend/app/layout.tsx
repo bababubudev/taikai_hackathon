@@ -59,9 +59,9 @@ export const metadata: Metadata = {
     }
   },
   alternates: {
-    canonical: "https://taikai-hackathon.vercel.app",
+    canonical: "https://zephyr-health.vercel.app",
     languages: {
-      "en-US": "https://taikai-hackathon.vercel.app",
+      "en-US": "https://zephyr-health.vercel.app",
     },
   },
   verification: {

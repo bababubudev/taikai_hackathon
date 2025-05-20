@@ -6,4 +6,4 @@ Disallow: /admin/
 Disallow: /user/
 Disallow: /api/
 
-Sitemap: https://https://taikai-hackathon.vercel.app/sitemap.xml
+Sitemap: https://zephyr-health.vercel.app/sitemap.xml
