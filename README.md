@@ -153,7 +153,7 @@ The app integrates with the Zephyr environmental data API:
 
 ```typescript
 // Example API endpoint
-https://zephyr.190304.xyz/api/v1/data?lng=23.8452736&lat=61.4531072&forecastHour=1
+/api/v1/data?lng=23.8452736&lat=61.4531072&forecastHour=1
 ```
 
 Supported metrics:
